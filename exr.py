@@ -74,7 +74,7 @@ def write(filename, data, channel_names = None, precision = FLOAT, compression =
   #
   if isinstance(data, dict):
     # Make sure everything has ndims 3
-    for group, matrix in data.viewitems():
+    for group, matrix in data.items():
       data[group] = make_ndims_3(matrix)
 
     # Prepare precisions
@@ -86,14 +86,14 @@ def write(filename, data, channel_names = None, precision = FLOAT, compression =
     # Prepare channel names
     if channel_names is None:
       channel_names = {}
-    channel_names = {group: get_channel_names(channel_names.get(group), matrix.shape[2]) for group, matrix in data.viewitems()}
+    channel_names = {group: get_channel_names(channel_names.get(group), matrix.shape[2]) for group, matrix in data.items()}
 
     # Collect channels
     channels = {}
     channel_data = {}
     width = None
     height = None
-    for group, matrix in data.viewitems():
+    for group, matrix in data.items():
       # Read the depth of the current group
       # and set height and width variables if not set yet
       if width is None:
