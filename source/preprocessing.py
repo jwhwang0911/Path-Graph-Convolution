@@ -27,7 +27,13 @@ def crop(data, position, patch_size):
             continue
         else:
             temp[key] = value[(py-hy):(py+hy+patch_size%2), (px-hx):(px+hx+patch_size%2), :]
-        temp['kernel_gt'] = None
+        
+        if key == "noisy":
+            patch_array = np.pad(value, ((2,2),(2,2),(0,0)), mode="edge")
+            
+            
+            
+        
     return temp
 
 def clip_numpy(target):
