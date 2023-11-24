@@ -5,7 +5,7 @@ from HDF5Constructor import HDF5Constructor
 from Dataset import CustomDataset
 from DataLoader import CustomDataLoader
 
-save_path = "/home/cglab/Desktop/Path-Graph-Convolution/h5"
+save_path = "/home/jangwon/Desktop/Path-Graph-Convolution/h5"
 
 patch_size = 80
 num_patch = 200
@@ -23,7 +23,7 @@ def train():
             print("{} is not exist".format(path))
             exist = False
     if not exist:
-        constructor = HDF5Constructor("/home/cglab/Desktop/Path-Graph-Convolution/noisy.exr",
+        constructor = HDF5Constructor("/home/jangwon/Desktop/Path-Graph-Convolution/input.exr",
                                       save_path, patch_size, num_patch, seed, data_ratio
                                       )
         constructor.construct_hdf5()
@@ -40,7 +40,7 @@ def train():
     val_num_samples = len(train_dataset)
     val_dataloader = CustomDataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=7, pin_memory=True)
     
-    root_save_path = "/home/cglab/Desktop/Path-Graph-Convolution/source/model"
+    root_save_path = "/home/jangwon/Desktop/Path-Graph-Convolution/source/model"
     
 
 if __name__ == "__main__":

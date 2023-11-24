@@ -30,8 +30,8 @@ class HDF5Constructor:
     def get_exr_paths(self):
         self.exr_paths.append(self.data_path)
         self.exr_paths.append(self.data_path)
-        self.gt_paths.append("/home/cglab/Desktop/Path-Graph-Convolution/gt.exr")
-        self.gt_paths.append("/home/cglab/Desktop/Path-Graph-Convolution/gt.exr")
+        self.gt_paths.append("/home/jangwon/Desktop/Path-Graph-Convolution/gt.exr")
+        self.gt_paths.append("/home/jangwon/Desktop/Path-Graph-Convolution/gt.exr")
         assert len(self.exr_paths) == len(self.gt_paths), "Samples does not equal to gts, check the data!"
         assert isinstance(self.seed, int) , "Seed must be an int"
         random.seed(self.seed)
@@ -65,9 +65,12 @@ class HDF5Constructor:
         train_save_path = os.path.join(self.save_path, "train.h5")
         val_save_path = os.path.join(self.save_path, "val.h5")
         path_mapping = {'train': train_save_path, 'val': val_save_path}
-        name_shape_mapping = {'noisy': (None, 80, 80, 3),
-                              'gt': (None, 80, 80, 3),
-                              'aux': (None, 80, 80, 7),
+        name_shape_mapping = {'noisy': (None, 6400, 3),
+                              'gt': (None, 6400, 3),
+                              'aux': (None, 6400, 7),
+                              'patch' : (None, 6400, 75),
+                              'adj_noisy' : (None, 6400, 9),
+                              'adj_patch' : (None, 6400, 9),
                               }
         print(self.paths)
         queues = [Queue() for i in range(2)]  # [train_queue, val_queue]

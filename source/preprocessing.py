@@ -2,6 +2,7 @@ import random
 import h5py
 import os
 from multiprocessing import Queue, Process, Value
+from sklearn.neighbors import BallTree
 import multiprocessing
 import numpy as np
 from scipy import ndimage
@@ -13,11 +14,12 @@ from random import randint
 def get_cropped_patches(exr_path, gt_path, patch_size, num_patches):
     data = preprocessing(exr_path, gt_path)
     patches = importance_sampling(data, patch_size, num_patches)
-    cropped = list(crop(data, tuple(position), patch_size) for position in patches)
-    
+    cropped = list(crop(data, index, tuple(position), patch_size) for index, position in enumerate(patches))
     return cropped, patches
 
-def crop(data, position, patch_size):
+def crop(data, index, position, patch_size):
+    print(index)
+    
     half_patch = patch_size // 2
     hx, hy = half_patch, half_patch
     px, py = position
@@ -26,15 +28,20 @@ def crop(data, position, patch_size):
         if key in ['albedo', 'depth', 'normal']:
             continue
         else:
-            temp[key] = value[(py-hy):(py+hy+patch_size%2), (px-hx):(px+hx+patch_size%2), :]
+            temp[key] = value[(py-hy):(py+hy+patch_size%2), (px-hx):(px+hx+patch_size%2), :].reshape((patch_size * patch_size,-1))
         
-        if key == "noisy":
-            patch_array = np.pad(value, ((2,2),(2,2),(0,0)), mode="edge")
+        if key in ["noisy","patch"]:
+            X = temp[key]
+            device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+            n_neighbors = 8
+            ball_tree = BallTree(X).to(device)
             
-            
-            
+            _, temp["adj_{}".format(key)] = ball_tree.query(X, k=n_neighbors + 1).to("cpu")
         
     return temp
+
+def postprocess_log(data):
+    return np.exp(data) - 1
 
 def clip_numpy(target):
     target = np.nan_to_num(target)
@@ -47,7 +54,7 @@ def depth_process(depth):
     return depth       
 
 def preprocessing(nsy_path:torch.Tensor, gt_path:torch.Tensor):
-    data = {"noisy" : None, "aux" : None, "gt":None,'normal':None, 'depth':None, 'albedo':None}
+    data = {"noisy" : None, "aux" : None, "gt":None,'normal':None, 'depth':None, 'albedo':None, 'patch': None}
     d = exr.read_all(nsy_path)
     gt= exr.read(gt_path)
     data["noisy"] = clip_numpy(d["noisy"])
@@ -63,6 +70,19 @@ def preprocessing(nsy_path:torch.Tensor, gt_path:torch.Tensor):
             data['albedo'].copy()         
         ), axis=2
     )
+    
+    patch_array = np.pad(data["noisy"], ((2,2),(2,2),(0,0)), mode="edge")
+            
+    result_list = []
+    for i in range(2, patch_array.shape[0]-2):
+        result_x = []
+        for j in range(2, patch_array.shape[1]-2):
+            window = patch_array[i-2:i+3, j-2:j+3, :].reshape(75,)
+            result_x.append(window)
+        result_list.append(result_x)
+    result_list = np.array(result_list)
+    
+    data["patch"] = result_list
         
     return data
 
